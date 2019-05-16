@@ -39,6 +39,7 @@ uint8_t bufferSpiRx[1156];
 uint8_t imageNumber = 0;
 uint8_t cnt = 0;
 
+bool timerFlag = false;
 bool flagRefreshBuffer = false;
 bool flagDMA_TX_Complete1 = false;
 bool flagDMA_TX_Complete2 = false;
@@ -99,31 +100,8 @@ void DMA2_Stream2_IRQHandler(void) {
 
 		DMA2->LIFCR = (uint32_t)((DMA_IT_TCIF2|DMA_IT_DMEIF2|DMA_IT_FEIF2|DMA_IT_HTIF2|DMA_IT_TEIF2) & RESERVED_MASK);
 		DMA2->LIFCR = (uint32_t)((DMA_FLAG_DMEIF2|DMA_FLAG_FEIF2|DMA_FLAG_HTIF2|DMA_FLAG_TCIF2|DMA_FLAG_TEIF2) & RESERVED_MASK);
-
 		flagDMA_TX_Complete1 = true;
 		DMA2_Stream2->CR &= ~(uint32_t)DMA_SxCR_EN;
-
-		if (flagDMA_TX_Complete1&&flagDMA_TX_Complete2&&flagDMA_TX_Complete3&&flagDMA_TX_Complete4)
-		{
-			if(interlacing==DISPLAY_ODD_SIDE)
-			{
-				TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
-				TLC_LAT1_GPIO->BSRRL = TLC_LAT1_Pin;
-				TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
-			}
-			else
-			{
-				TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
-				TLC_LAT2_GPIO->BSRRL = TLC_LAT2_Pin;
-				TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
-			}
-
-
-			flagDMA_TX_Complete1 = false;
-			flagDMA_TX_Complete2 = false;
-			flagDMA_TX_Complete3 = false;
-			flagDMA_TX_Complete4 = false;
-		}
 
 	}
 }
@@ -136,27 +114,7 @@ void DMA1_Stream4_IRQHandler(void) {
 		DMA1_Stream4->CR &= ~(uint32_t) DMA_SxCR_EN;
 
 
-		if (flagDMA_TX_Complete1&&flagDMA_TX_Complete2&&flagDMA_TX_Complete3&&flagDMA_TX_Complete4)
-		{
-			if(interlacing==DISPLAY_ODD_SIDE)
-			{
 
-				TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
-				TLC_LAT1_GPIO->BSRRL = TLC_LAT1_Pin;
-				TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
-			}
-			else
-			{
-				TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
-				TLC_LAT2_GPIO->BSRRL = TLC_LAT2_Pin;
-				TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
-			}
-
-			flagDMA_TX_Complete1 = false;
-			flagDMA_TX_Complete2 = false;
-			flagDMA_TX_Complete3 = false;
-			flagDMA_TX_Complete4 = false;
-		}
 	}
 }
 
@@ -168,27 +126,6 @@ void DMA1_Stream5_IRQHandler(void) {
 		DMA1_Stream5->CR &= ~(uint32_t) DMA_SxCR_EN;
 
 
-		if (flagDMA_TX_Complete1&&flagDMA_TX_Complete2&&flagDMA_TX_Complete3&&flagDMA_TX_Complete4)
-		{
-			if(interlacing==DISPLAY_ODD_SIDE)
-			{
-				TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
-				TLC_LAT1_GPIO->BSRRL = TLC_LAT1_Pin;
-				TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
-			}
-			else
-			{
-				TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
-				TLC_LAT2_GPIO->BSRRL = TLC_LAT2_Pin;
-				TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
-			}
-
-			flagDMA_TX_Complete1 = false;
-			flagDMA_TX_Complete2 = false;
-			flagDMA_TX_Complete3 = false;
-			flagDMA_TX_Complete4 = false;
-		}
-
 	}
 }
 
@@ -199,26 +136,6 @@ void DMA2_Stream1_IRQHandler(void) {
 		flagDMA_TX_Complete4 = true;
 		DMA2_Stream1->CR &= ~(uint32_t) DMA_SxCR_EN;
 
-		if (flagDMA_TX_Complete1&&flagDMA_TX_Complete2&&flagDMA_TX_Complete3&&flagDMA_TX_Complete4)
-		{
-			if(interlacing==DISPLAY_ODD_SIDE)
-			{
-				TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
-				TLC_LAT1_GPIO->BSRRL = TLC_LAT1_Pin;
-				TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
-			}
-			else
-			{
-				TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
-				TLC_LAT2_GPIO->BSRRL = TLC_LAT2_Pin;
-				TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
-			}
-
-			flagDMA_TX_Complete1 = false;
-			flagDMA_TX_Complete2 = false;
-			flagDMA_TX_Complete3 = false;
-			flagDMA_TX_Complete4 = false;
-		}
 	}
 }
 
@@ -227,82 +144,7 @@ void TIM4_IRQHandler(void) {
 		//Clear flag Interrupt
 		TIM4->SR = (uint16_t) ~TIM_IT_Update;
 
-		pixelColumnCounter++;
-
-		if(interlacing==DISPLAY_ODD_SIDE)
-		{
-			if((pixelColumnCounter%2)==0) displayState = OFF;
-			else displayState = ON;
-		}
-		else if(interlacing==DISPLAY_EVEN_SIDE)
-		{
-			if((pixelColumnCounter%2)==0) displayState = ON;
-			else displayState = OFF;
-		}
-
-		if(pixelColumnCounter==255)displayState = OFF;
-		else if(pixelColumnCounter==256)
-		{
-			if(interlacing==DISPLAY_ODD_SIDE)
-			{
-				interlacing = DISPLAY_EVEN_SIDE;
-				displayState = OFF;
-			}
-			else if(interlacing==DISPLAY_EVEN_SIDE)
-			{
-				interlacing = DISPLAY_ODD_SIDE;
-				displayState = OFF;
-			}
-			pixelColumnCounter = 0;
-			cnt++;
-		}
-
-		//Disable DMA
-		DMA2_Stream2->CR &= ~(uint32_t)DMA_SxCR_EN;
-		DMA1_Stream4->CR &= ~(uint32_t)DMA_SxCR_EN;
-		DMA1_Stream5->CR &= ~(uint32_t)DMA_SxCR_EN;
-		DMA2_Stream1->CR &= ~(uint32_t)DMA_SxCR_EN;
-
-		switch (displayState){
-		case ON:
-			switch(bufferIndex){
-			case BUFFER_1:
-				DMA2_Stream2->M0AR = (uint32_t)&pixelmapBuffer1[867];
-				DMA1_Stream4->M0AR = (uint32_t)&pixelmapBuffer1[578];
-				DMA1_Stream5->M0AR = (uint32_t)&pixelmapBuffer1[289];
-				DMA2_Stream1->M0AR = (uint32_t)&pixelmapBuffer1;
-				break;
-			case BUFFER_2:
-				DMA2_Stream2->M0AR = (uint32_t)&pixelmapBuffer2[867];
-				DMA1_Stream4->M0AR = (uint32_t)&pixelmapBuffer2[578];
-				DMA1_Stream5->M0AR = (uint32_t)&pixelmapBuffer2[289];
-				DMA2_Stream1->M0AR = (uint32_t)&pixelmapBuffer2;
-				break;
-			}
-			if(bufferIndex==BUFFER_2) bufferIndex = BUFFER_1;
-			else bufferIndex = BUFFER_2;
-			flagRefreshBuffer = true;
-			break;
-			case OFF:
-				DMA2_Stream2->M0AR = (uint32_t)&blackRow;
-				DMA1_Stream4->M0AR = (uint32_t)&blackRow;
-				DMA1_Stream5->M0AR = (uint32_t)&blackRow;
-				DMA2_Stream1->M0AR = (uint32_t)&blackRow;
-				break;
-		}
-		//Start DMA2 Stream2
-		SPI1->CR2 |= SPI_I2S_DMAReq_Tx;
-		DMA2_Stream2->CR |= (uint32_t) DMA_SxCR_EN;
-		//Start DMA1 Stream4
-		SPI2->CR2 |= SPI_I2S_DMAReq_Tx;
-		DMA1_Stream4->CR |= (uint32_t) DMA_SxCR_EN;
-		//Start DMA1 Stream5
-		SPI3->CR2 |= SPI_I2S_DMAReq_Tx;
-		DMA1_Stream5->CR |= (uint32_t) DMA_SxCR_EN;
-		//Start DMA2 Stream1
-		SPI4->CR2 |= SPI_I2S_DMAReq_Tx;
-		DMA2_Stream1->CR |= (uint32_t) DMA_SxCR_EN;
-
+		timerFlag = true;
 
 	}
 }
@@ -656,17 +498,116 @@ int main(void) {
 
 	while (1) {
 
+		if(timerFlag)
+		{
+			pixelColumnCounter++;
 
+					if(interlacing==DISPLAY_ODD_SIDE)
+					{
+						if((pixelColumnCounter%2)==0) displayState = OFF;
+						else displayState = ON;
+					}
+					else if(interlacing==DISPLAY_EVEN_SIDE)
+					{
+						if((pixelColumnCounter%2)==0) displayState = ON;
+						else displayState = OFF;
+					}
+
+					if(pixelColumnCounter==255)displayState = OFF;
+					else if(pixelColumnCounter==256)
+					{
+						if(interlacing==DISPLAY_ODD_SIDE)
+						{
+							interlacing = DISPLAY_EVEN_SIDE;
+							displayState = OFF;
+						}
+						else if(interlacing==DISPLAY_EVEN_SIDE)
+						{
+							interlacing = DISPLAY_ODD_SIDE;
+							displayState = OFF;
+						}
+						pixelColumnCounter = 0;
+						cnt++;
+					}
+
+					//Disable DMA
+					DMA2_Stream2->CR &= ~(uint32_t)DMA_SxCR_EN;
+					DMA1_Stream4->CR &= ~(uint32_t)DMA_SxCR_EN;
+					DMA1_Stream5->CR &= ~(uint32_t)DMA_SxCR_EN;
+					DMA2_Stream1->CR &= ~(uint32_t)DMA_SxCR_EN;
+
+					switch (displayState){
+					case ON:
+						switch(bufferIndex){
+						case BUFFER_1:
+							DMA2_Stream2->M0AR = (uint32_t)&pixelmapBuffer1[867];
+							DMA1_Stream4->M0AR = (uint32_t)&pixelmapBuffer1[578];
+							DMA1_Stream5->M0AR = (uint32_t)&pixelmapBuffer1[289];
+							DMA2_Stream1->M0AR = (uint32_t)&pixelmapBuffer1;
+							break;
+						case BUFFER_2:
+							DMA2_Stream2->M0AR = (uint32_t)&pixelmapBuffer2[867];
+							DMA1_Stream4->M0AR = (uint32_t)&pixelmapBuffer2[578];
+							DMA1_Stream5->M0AR = (uint32_t)&pixelmapBuffer2[289];
+							DMA2_Stream1->M0AR = (uint32_t)&pixelmapBuffer2;
+							break;
+						}
+						if(bufferIndex==BUFFER_2) bufferIndex = BUFFER_1;
+						else bufferIndex = BUFFER_2;
+						flagRefreshBuffer = true;
+						break;
+						case OFF:
+							DMA2_Stream2->M0AR = (uint32_t)&blackRow;
+							DMA1_Stream4->M0AR = (uint32_t)&blackRow;
+							DMA1_Stream5->M0AR = (uint32_t)&blackRow;
+							DMA2_Stream1->M0AR = (uint32_t)&blackRow;
+							break;
+					}
+					//Start DMA2 Stream2
+					SPI1->CR2 |= SPI_I2S_DMAReq_Tx;
+					DMA2_Stream2->CR |= (uint32_t) DMA_SxCR_EN;
+					//Start DMA1 Stream4
+					SPI2->CR2 |= SPI_I2S_DMAReq_Tx;
+					DMA1_Stream4->CR |= (uint32_t) DMA_SxCR_EN;
+					//Start DMA1 Stream5
+					SPI3->CR2 |= SPI_I2S_DMAReq_Tx;
+					DMA1_Stream5->CR |= (uint32_t) DMA_SxCR_EN;
+					//Start DMA2 Stream1
+					SPI4->CR2 |= SPI_I2S_DMAReq_Tx;
+					DMA2_Stream1->CR |= (uint32_t) DMA_SxCR_EN;
+					timerFlag = false;
+
+		}
 //		if(cnt>=100)
 //		{
 //			imageNumber++;
 //			if(imageNumber>=3) imageNumber=0;
 //			cnt = 0;
 //		}
+		if (flagDMA_TX_Complete1&&flagDMA_TX_Complete2&&flagDMA_TX_Complete3&&flagDMA_TX_Complete4)
+				{
+					if(interlacing==DISPLAY_ODD_SIDE)
+					{
+						TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
+						TLC_LAT1_GPIO->BSRRL = TLC_LAT1_Pin;
+						TLC_LAT1_GPIO->BSRRH = TLC_LAT1_Pin;
+					}
+					else
+					{
+						TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
+						TLC_LAT2_GPIO->BSRRL = TLC_LAT2_Pin;
+						TLC_LAT2_GPIO->BSRRH = TLC_LAT2_Pin;
+					}
 
+
+					flagDMA_TX_Complete1 = false;
+					flagDMA_TX_Complete2 = false;
+					flagDMA_TX_Complete3 = false;
+					flagDMA_TX_Complete4 = false;
+				}
 	//wifi->incommingDataDecoder(flash);
 
-		if(flagRefreshBuffer)
+		if(flagRefreshBuffer&&(timerFlag==false))
 		{
 			flagRefreshBuffer = false;
 			if(pixelColumnCounter<255)
